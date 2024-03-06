@@ -16,9 +16,8 @@ public class CalculatorController {
     }
 
     private void updateDisplayText() {
-        // Set the displayText to the string representation of the CalculatorModel
-        displayText.setLength(0); // Clear the current display text
-        displayText.append(model.getDisplayText()); // Get the display text from the model
+        displayText.setLength(0);
+        displayText.append(model.getDisplayText());
     }
 
     public String getDisplayText() {

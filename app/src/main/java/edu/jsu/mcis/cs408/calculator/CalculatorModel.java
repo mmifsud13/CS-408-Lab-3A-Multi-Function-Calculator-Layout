@@ -1,5 +1,7 @@
 package edu.jsu.mcis.cs408.calculator;
 
+import android.widget.TextView;
+
 import java.math.BigDecimal;
 
 public class CalculatorModel {
@@ -9,6 +11,7 @@ public class CalculatorModel {
     private Operator operator;
     private boolean isNewInput;
     private boolean isRightOperandInput;
+    private int error = 0;
 
     public CalculatorModel() {
         clear(); // Initialize operands and operator
@@ -19,16 +22,29 @@ public class CalculatorModel {
         String expression = "";
 
         // If there is a right operand and an operator, construct the complete expression
-        if (rightOperand != null && operator != null) {
-            expression = leftOperand.toString() + " " + operator.symbol + " " + rightOperand.toString();
-        } else {
-            // Otherwise, display only the left operand
-            expression = leftOperand.toString();
+        if (error == 0) {
+            if (rightOperand != null && operator != null) {
+                expression = leftOperand.toString() + " " + operator.symbol + " " + rightOperand.toString();
+            } else {
+                // Otherwise, display only the left operand
+                expression = leftOperand.toString();
+            }
+        }
+        else {
+            if (error == 1)
+            {
+                expression = "Error: Cannot divide by zero";
+                error = 0;
+            }
+            else if (error == 2)
+            {
+                expression = "Error: Please choose a positive number";
+                error = 0;
+            }
         }
 
         return expression;
     }
-
 
     public void processInput(String input) {
         switch (input) {
@@ -78,17 +94,14 @@ public class CalculatorModel {
                 break;
             default:
                 if (isNewInput || getDisplayText().equals("0")) {
-                    // Start a new input if the display shows 0 or after calculation
                     leftOperand = new BigDecimal(input);
                     isNewInput = false;
                 } else {
-                    // Append input to the existing number
                     leftOperand = leftOperand.multiply(BigDecimal.TEN).add(new BigDecimal(input));
                 }
                 break;
         }
     }
-
 
     private void processRightOperandInput(String input) {
         if (isNewInput) {
@@ -99,7 +112,6 @@ public class CalculatorModel {
         }
     }
 
-
     private void processDigitInput(String digit) {
         if (isNewInput) {
             leftOperand = new BigDecimal(digit);
@@ -109,12 +121,29 @@ public class CalculatorModel {
         }
     }
 
+    //BROKEN
     private void processDecimalInput() {
-        // Check if decimal point is already present in the current input
-        if (!leftOperand.toString().contains(".")) {
-            leftOperand = leftOperand.add(BigDecimal.valueOf(0.0));
+        BigDecimal operandToAddDecimal;
+        if (!isRightOperandInput) {
+            operandToAddDecimal = leftOperand;
+        } else {
+            if (rightOperand == null) {
+                rightOperand = BigDecimal.ZERO;
+            }
+            operandToAddDecimal = rightOperand;
+        }
+
+        if (!operandToAddDecimal.toString().contains(".")) {
+            operandToAddDecimal = new BigDecimal(operandToAddDecimal.toString() + ".");
+        }
+
+        if (!isRightOperandInput) {
+            leftOperand = operandToAddDecimal;
+        } else {
+            rightOperand = operandToAddDecimal;
         }
     }
+
 
     private void processOperatorInput(String operatorInput) {
         operator = Operator.fromString(operatorInput);
@@ -137,23 +166,26 @@ public class CalculatorModel {
                     break;
                 case DIVISION:
                     if (rightOperand.equals(BigDecimal.ZERO)) {
-                        // Handle division by zero error
+                        error = 1;
                         return;
                     }
-                    result = leftOperand.divide(rightOperand, BigDecimal.ROUND_HALF_UP);
+                    result = leftOperand.divide(rightOperand, 10, BigDecimal.ROUND_HALF_UP);
                     break;
             }
             leftOperand = result;
-            rightOperand = null; // Reset right operand after calculation
+            rightOperand = null;
         }
         isNewInput = true;
     }
+
     private void clear() {
         leftOperand = BigDecimal.ZERO;
         rightOperand = BigDecimal.ZERO;
         operator = null;
         isNewInput = true;
+        isRightOperandInput = false;
     }
+
 
     private void toggleSign() {
         leftOperand = leftOperand.negate();
@@ -163,15 +195,15 @@ public class CalculatorModel {
         if (leftOperand.compareTo(BigDecimal.ZERO) >= 0) {
             leftOperand = BigDecimal.valueOf(Math.sqrt(leftOperand.doubleValue()));
         } else {
-            // Handle negative number error
+            error = 2;
         }
     }
 
     private void calculatePercentage() {
-        if (operator != null) {
-            rightOperand = leftOperand.multiply(BigDecimal.valueOf(0.01));
+        if (operator != null && rightOperand == null) {
+            rightOperand = BigDecimal.valueOf(0.01);
         } else {
-            // Handle error
+            leftOperand = leftOperand.multiply(BigDecimal.valueOf(0.01));
         }
     }
 

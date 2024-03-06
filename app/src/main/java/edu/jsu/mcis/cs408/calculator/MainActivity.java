@@ -6,8 +6,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import edu.jsu.mcis.cs408.calculator.CalculatorController;
-import edu.jsu.mcis.cs408.calculator.R;
 import edu.jsu.mcis.cs408.calculator.databinding.ActivityMainBinding;
 
 public class MainActivity extends AppCompatActivity {
@@ -24,11 +22,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(view);
 
         displayTextView = findViewById(R.id.displayTextView);
-
-        //Instantiate controller
         controller = new CalculatorController();
 
-        //click listeners
         setButtonClickListeners();
     }
 
@@ -80,7 +75,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateDisplayText() {
-        // Get text from controller and update displayTextView
         displayTextView.setText(controller.getDisplayText());
     }
     private class CalculatorClickListener implements View.OnClickListener {
@@ -88,7 +82,7 @@ public class MainActivity extends AppCompatActivity {
         public void onClick(View view) {
             String input = ((Button) view).getText().toString();
             controller.processInput(input);
-            updateDisplayText(); // Update display text after processing input
+            updateDisplayText();
         }
     }
 }
